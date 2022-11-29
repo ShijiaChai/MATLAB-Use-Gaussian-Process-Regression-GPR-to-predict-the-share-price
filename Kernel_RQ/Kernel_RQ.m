@@ -1,0 +1,24 @@
+function [f,grd]=Kernel_RQ(X_r,y,sigma2_N,hyper_parameter)
+hyper_parameter=exp(hyper_parameter);
+A_RQ=hyper_parameter(1);
+M_RQ=hyper_parameter(2);
+K_RQ=hyper_parameter(3);
+n=length(y);
+K=A_RQ*(1+M_RQ*X_r).^(-K_RQ)+sigma2_N*eye(n);
+if(cond(K)>1e4)
+    display('!!');
+end
+K_inv=inv(K);
+alpha=K_inv*y;
+f=y.'*alpha+log(det(K));
+if(nargout>1)
+    grd=zeros(length(hyper_parameter),1);
+    K_grd=alpha*alpha.'-K_inv;
+    A_RQ_d=(1+M_RQ*X_r).^(-K_RQ);
+    M_RQ_d=-A_RQ*K_RQ*M_RQ*(1+M_RQ*X_r).^(-K_RQ-1);
+    K_RQ_d=-A_RQ*log(1+M_RQ*X_r).*(1+M_RQ*X_r).^(-K_RQ);
+    grd(1)=A_RQ*trace(K_grd*A_RQ_d);
+    grd(2)=M_RQ*trace(K_grd*M_RQ_d);
+    grd(3)=K_RQ*trace(K_grd*K_RQ_d);
+end
+end
